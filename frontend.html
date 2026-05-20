@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PickForYou - Sistem Avansat de Recomandare</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-dark: #0d1b2a;
+            --secondary-dark: #1a2f4a;
+            --accent-blue: #3d6a9e;
+            --light-blue: #4a7bb8;
+            --text-light: #e8f0f7;
+            --text-gray: #b8c9db;
+            --border-color: #2a4a6a;
+            --success: #32b88c;
+            --warning: #f39c12;
+            --error: #e74c3c;
+            
+            /* Culori pentru categorii */
+            --film-gradient: linear-gradient(135deg, #e74c3c, #c0392b);
+            --carte-gradient: linear-gradient(135deg, #f39c12, #e67e22);
+            --muzica-gradient: linear-gradient(135deg, #27ae60, #2ecc71);
+            --default-gradient: linear-gradient(135deg, #3d6a9e, #4a7bb8);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e74c3c, #f39c12, #27ae60, #4a7bb8);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 8s ease infinite;
+            display: flex;
+            align-items: flex-end;
+            gap: 15px;
+        }
+
+        /* Roata norocului animată */
+        .logo-wheel {
+            width: 55px;
+            height: 55px;
+            animation: spin 6s linear infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .logo-icon {
+            font-size: 40px;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .user-greeting {
+            font-size: 13px;
+            color: var(--text-gray);
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #3d6a9e, #4a7bb8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .btn-logout {
+            padding: 10px 20px;
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            border-radius: 6px;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: rgba(231, 76, 60, 0.3);
+        }
+
+        /* Auth Section */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+            z-index: 10000;
+        }
+
+        .auth-card {
+            background: rgba(26, 47, 79, 0.95);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .auth-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+            color: var(--light-blue);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--text-gray);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(13, 27, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--light-blue);
+            box-shadow: 0 0 15px rgba(74, 123, 184, 0.2);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #3d6a9e, #4a7bb8);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 123, 184, 0.3);
+        }
+
+        .btn-secondary {
+            padding: 10px 18px;
+            background: rgba(45, 90, 140, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(74, 123, 184, 0.2);
+            border-color: var(--light-blue);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-gray);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--light-blue);
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #3d6a9e 0%, #4a7bb8 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-value {
+            font-size: 42px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.9);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Menu Grid */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .menu-grid-top {
+            grid-template-columns: repeat(3, 1fr);
+            margin-bottom: 30px;
+        }
+
+        .menu-grid-main {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .menu-item {
+            background: rgba(45, 90, 140, 0.2);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: all 0.5s ease;
+        }
+
+        .menu-item:hover::before {
+            left: 100%;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+        }
+
+        /* carduri late pentru Recomandări Salvate & Profil Genuri */
+        .menu-item-wide {
+            grid-column: span 2;
+        }
+
+        /* Teme pentru categorii */
+        .menu-item.film {
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.2), rgba(192, 57, 43, 0.2));
+            border-color: rgba(231, 76, 60, 0.5);
+        }
+
+        .menu-item.film:hover {
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.3), rgba(192, 57, 43, 0.3));
+            border-color: rgba(231, 76, 60, 0.8);
+            box-shadow: 0 10px 25px rgba(231, 76, 60, 0.2);
+        }
+
+        .menu-item.carte {
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.2), rgba(230, 126, 34, 0.2));
+            border-color: rgba(243, 156, 18, 0.5);
+        }
+
+        .menu-item.carte:hover {
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.3), rgba(230, 126, 34, 0.3));
+            border-color: rgba(243, 156, 18, 0.8);
+            box-shadow: 0 10px 25px rgba(243, 156, 18, 0.2);
+        }
+
+        .menu-item.muzica {
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.2), rgba(46, 204, 113, 0.2));
+            border-color: rgba(39, 174, 96, 0.5);
+        }
+
+        .menu-item.muzica:hover {
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.3), rgba(46, 204, 113, 0.3));
+            border-color: rgba(39, 174, 96, 0.8);
+            box-shadow: 0 10px 25px rgba(39, 174, 96, 0.2);
+        }
+
+        .menu-item.default {
+            background: linear-gradient(135deg, rgba(61, 106, 158, 0.2), rgba(74, 123, 184, 0.2));
+            border-color: rgba(74, 123, 184, 0.5);
+        }
+
+        .menu-item.default:hover {
+            background: linear-gradient(135deg, rgba(61, 106, 158, 0.3), rgba(74, 123, 184, 0.3));
+            border-color: rgba(74, 123, 184, 0.8);
+            box-shadow: 0 10px 25px rgba(74, 123, 184, 0.2);
+        }
+
+        .menu-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .menu-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .menu-desc {
+            font-size: 13px;
+            color: var(--text-gray);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Sections */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--light-blue);
+        }
+
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        .data-table th {
+            background: var(--accent-blue);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .data-table th:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+
+        .data-table th:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+
+        .data-table td {
+            background: rgba(45, 90, 140, 0.15);
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table td:first-child {
+            border-left: 1px solid var(--border-color);
+            border-radius: 8px 0 0 8px;
+        }
+
+        .data-table td:last-child {
+            border-right: 1px solid var(--border-color);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(74, 123, 184, 0.2);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-film {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        .badge-carte {
+            background: rgba(243, 156, 18, 0.2);
+            color: #f39c12;
+            border: 1px solid #f39c12;
+        }
+
+        .badge-muzica {
+            background: rgba(50, 184, 140, 0.2);
+            color: #32b88c;
+            border: 1px solid #32b88c;
+        }
+
+        .badge-default {
+            background: rgba(61, 106, 158, 0.2);
+            color: #4a7bb8;
+            border: 1px solid #4a7bb8;
+        }
+
+        .rating-star {
+            color: #f39c12;
+        }
+
+        /* Favorite heart button */
+        .favorite-btn {
+            font-size: 18px;
+            padding: 8px 14px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 5000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            padding: 35px;
+            max-width: 550px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: scaleIn 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--light-blue);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-gray);
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: #e74c3c;
+            transform: rotate(90deg);
+        }
+
+        /* Alert */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert.active {
+            display: block;
+        }
+
+        .alert-success {
+            background: rgba(50, 184, 140, 0.2);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .alert-error {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        /* Search & Filter */
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            background: rgba(13, 27, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-gray);
+            font-size: 18px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Genre Tags */
+        .genre-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(13, 27, 42, 0.3);
+            border-radius: 8px;
+        }
+
+        .genre-tag {
+            background: rgba(74, 123, 184, 0.2);
+            border: 1px solid var(--light-blue);
+            border-radius: 15px;
+            padding: 8px 15px;
+            font-size: 12px;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .genre-tag:hover {
+            background: var(--accent-blue);
+        }
+
+        .genre-tag.selected {
+            background: var(--light-blue);
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        /* Recommendations */
+        .recommendation-card {
+            background: rgba(45, 90, 140, 0.15);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .recommendation-card:hover {
+            background: rgba(74, 123, 184, 0.2);
+            border-color: var(--light-blue);
+        }
+
+        .rec-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .rec-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .match-score {
+            background: linear-gradient(135deg, #3d6a9e, #4a7bb8);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .rec-details {
+            display: flex;
+            gap: 15px;
+            color: var(--text-gray);
+            font-size: 13px;
+            flex-wrap: wrap;
+        }
+
+        /* Top Items */
+        .top-item {
+            display: flex;
+            align-items: center;
+            background: rgba(45, 90, 140, 0.15);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .top-item:hover {
+            background: rgba(74, 123, 184, 0.2);
+            border-color: var(--light-blue);
+        }
+
+        .top-position {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--light-blue);
+            min-width: 50px;
+            text-align: center;
+            margin-right: 20px;
+        }
+
+        .top-info {
+            flex-grow: 1;
+        }
+
+        .top-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text-light);
+        }
+
+        .top-details {
+            display: flex;
+            gap: 15px;
+            color: var(--text-gray);
+            font-size: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--light-blue);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        /* Match score pentru recomandări generate */
+        .rec-match-score {
+            background: linear-gradient(135deg, #3d6a9e, #4a7bb8);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .menu-grid-top,
+            .menu-grid-main {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .menu-grid,
+            .menu-grid-top,
+            .menu-grid-main {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .data-table {
+                font-size: 12px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 10px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Section -->
+    <div id="authSection" class="auth-container">
+        <div class="auth-card">
+            <h1 style="text-align: center; margin-bottom: 30px; font-size: 32px;">🎬 PickForYou</h1>
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('login')">Autentificare</button>
+                <button class="tab-btn" onclick="switchTab('register')">Înregistrare</button>
+            </div>
+
+            <div id="alertBox" class="alert"></div>
+
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label class="form-label">Nume Utilizator</label>
+                    <input type="text" id="loginUsername" class="form-input" placeholder="Introduceți username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Parolă</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="Introduceți parola">
+                </div>
+                <button class="btn-primary" onclick="login()">Autentificare</button>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label">Nume Utilizator</label>
+                    <input type="text" id="registerUsername" class="form-input" placeholder="Alegeți username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Parolă</label>
+                    <input type="password" id="registerPassword" class="form-input" placeholder="Alegeți parolă">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirmare Parolă</label>
+                    <input type="password" id="registerPasswordConfirm" class="form-input" placeholder="Confirmați parola">
+                </div>
+                <button class="btn-primary" onclick="register()">Creare Cont</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div id="dashboardSection" class="dashboard">
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo">
+                    <!-- Roata Norocului SVG Animată -->
+                    <svg class="logo-wheel" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="48" fill="#0d1b2a" stroke="#4a7bb8" stroke-width="4"/>
+                        <g>
+                            <path d="M50 50 L50 2 A48 48 0 0 1 92 29 Z" fill="#3d6a9e"/>
+                            <path d="M50 50 L92 29 A48 48 0 0 1 92 71 Z" fill="#4a7bb8"/>
+                            <path d="M50 50 L92 71 A48 48 0 0 1 50 98 Z" fill="#27ae60"/>
+                            <path d="M50 50 L50 98 A48 48 0 0 1 8 71 Z" fill="#f39c12"/>
+                            <path d="M50 50 L8 71 A48 48 0 0 1 8 29 Z" fill="#e74c3c"/>
+                            <path d="M50 50 L8 29 A48 48 0 0 1 50 2 Z" fill="#9b59b6"/>
+                        </g>
+                        <circle cx="50" cy="50" r="6" fill="#ffffff"/>
+                    </svg>
+
+                    <!-- Text PickForYou cu gradient -->
+                    <span>PickForYou</span>
+                </div>
+                <div class="user-section">
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Utilizator</div>
+                        <div class="user-greeting">Bine ai revenit!</div>
+                    </div>
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <button class="btn-logout" onclick="logout()">Deconectare</button>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statFavorites">0</div>
+                    <div class="stat-label">Favorite</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statRatings">0</div>
+                    <div class="stat-label">Ratinguri</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statRecommendations">0</div>
+                    <div class="stat-label">Recomandări</div>
+                </div>
+            </div>
+
+            <!-- Main Menu -->
+            <div id="mainMenu" class="content-section active">
+                <!-- Top Row: Top Baza de Date, Top Utilizatori, Itemi Recente -->
+                <div class="menu-grid menu-grid-top">
+                    <div class="menu-item film" onclick="showSection('topDatabase')">
+                        <div class="menu-icon">🏆</div>
+                        <div class="menu-title">Top Baza de Date</div>
+                        <div class="menu-desc">Cele mai bune itemi din baza de date</div>
+                    </div>
+                    <div class="menu-item carte" onclick="showSection('topUsers')">
+                        <div class="menu-icon">👑</div>
+                        <div class="menu-title">Top Utilizatori</div>
+                        <div class="menu-desc">Cele mai apreciate itemi de utilizatori</div>
+                    </div>
+                    <div class="menu-item muzica" onclick="showSection('recentItems')">
+                        <div class="menu-icon">🆕</div>
+                        <div class="menu-title">Itemi Recente</div>
+                        <div class="menu-desc">Cele mai noi adăugări</div>
+                    </div>
+                </div>
+
+                <!-- Main Row: Baza de Date, Favoritele Mele, Ratingurile Mele, Recomandări -->
+                <div class="menu-grid menu-grid-main">
+                    <!-- Baza de Date – făcut roșu ca Top Baza de Date -->
+                    <div class="menu-item film" onclick="showSection('database')">
+                        <div class="menu-icon">📚</div>
+                        <div class="menu-title">Baza de Date</div>
+                        <div class="menu-desc">300 filme, cărți și muzică</div>
+                    </div>
+                    <div class="menu-item film" onclick="showSection('favorites')">
+                        <div class="menu-icon">⭐</div>
+                        <div class="menu-title">Favoritele Mele</div>
+                        <div class="menu-desc">Vezi și gestionează favorite</div>
+                    </div>
+                    <div class="menu-item carte" onclick="showSection('ratings')">
+                        <div class="menu-icon">🌟</div>
+                        <div class="menu-title">Ratingurile Mele</div>
+                        <div class="menu-desc">Acordă și vezi ratinguri</div>
+                    </div>
+                    <div class="menu-item muzica" onclick="openRecommendationModal()">
+                        <div class="menu-icon">🎯</div>
+                        <div class="menu-title">Recomandări</div>
+                        <div class="menu-desc">Generează și salvează automat</div>
+                    </div>
+                    <div class="menu-item default menu-item-wide" onclick="showSection('savedRecommendations')">
+                        <div class="menu-icon">💾</div>
+                        <div class="menu-title">Recomandări Salvate</div>
+                        <div class="menu-desc">Toate recomandările tale</div>
+                    </div>
+                    <div class="menu-item default menu-item-wide" onclick="showSection('profileDebug')">
+                        <div class="menu-icon">🧠</div>
+                        <div class="menu-title">Profil Genuri</div>
+                        <div class="menu-desc">Vezi ce genuri îți plac sau nu</div>
+                    </div>
+                </div>
+            </div>
+            
+
+            <!-- Top Baza de Date Section -->
+            <div id="topDatabaseSection" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Top Baza de Date</h2>
+                    <button class="btn-secondary" onclick="showSection('main')">← Înapoi</button>
+                </div>
+
+                <div class="filter-buttons">
+                    <button class="btn-secondary" onclick="loadTopDatabase('all')">Toate</button>
+                    <button class="btn-secondary" onclick="loadTopDatabase('film')">🎬 Filme</button>
+                    <button class="btn-secondary" onclick="loadTopDatabase('carte')">📚 Cărți</button>
+                    <button class="btn-secondary" onclick="loadTopDatabase('muzica')">🎵 Muzică</button>
+                </div>
+
+                <div id="topDatabaseContainer"></div>
+            </div>
+
+            <!-- Top Utilizatori Section -->
+            <div id="topUsersSection" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Top Utilizatori</h2>
+                    <button class="btn-secondary" onclick="showSection('main')">← Înapoi</button>
+                </div>
+
+                <div class="filter-buttons">
+                    <button class="btn-secondary" onclick="loadTopUsers('all')">Toate</button>
+                    <button class="btn-secondary" onclick="loadTopUsers('film')">🎬 Filme</button>
+                    <button class="btn-secondary" onclick="loadTopUsers('carte')">📚 Cărți</button>
+                    <button class="btn-secondary" onclick="loadTopUsers('muzica')">🎵 Muzică</button>
+                </div>
+
+                <div id="topUsersContainer"></div>
+            </div>
+
+            <!-- Itemi Recente Section -->
+            <div id="recentItemsSection" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Itemi Recente</h2>
+                    <button class="btn-secondary" onclick="showSection('main')">← Înapoi</button>
+                </div>
+
+                <div id="recentItemsContainer"></div>
+            </div>
+
+            <!-- Database Section -->
+            <div id="databaseSection" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Baza de Date</h2>
+                    <button class="btn-secondary" onclick="showSection('main')">← Înapoi</button>
+                </div>
+
+                <div class="search-box">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Caută în baza de date..." onkeyup="searchDatabase()">
+                    <span class="search-icon">🔍</span>
+                </div>
+
+                <div class="filter-buttons">
+                    <button class="btn-secondary" onclick="filterDatabase('all')">Toate</button>
+                    <button class="btn-secondary" onclick="filterDatabase('film')">🎬 Filme</button>
+                    <button class="btn-secondary" onclick="filterDatabase('carte')">📚 Cărți</button>
+                    <button class="btn-secondary" onclick="filterDatabase('muzica')">🎵 Muzică</button>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>TITLU</th>
+                                <th>TIP</th>
+                                <th>AN</th>
+                                <th>RATING</th>
+                                <th>ACTIUNI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="databaseTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Favorites Section -->
+            <div id="favoritesSection" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Favoritele Mele</h2>
+                    <button class="btn-secondary" onclick="showSection('main')">← Înapoi</button>
+                </div>
+                <div id="favoritesContainer"></div>
+            </div>
+
+             <!-- Ratings Section -->
+            <div id="ratingsSection" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Ratingurile Mele</h2>
+                    <button class="btn-secondary" onclick="showSection('main')">← Înapoi</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>TITLU</th>
+                                <th>TIP</th>
+                                <th>RATING TĂU</th>
+                                <th>ACTIUNI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ratingsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Saved Recommendations Section -->
+            <div id="savedRecommendationsSection" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Recomandări Salvate</h2>
+                    <button class="btn-secondary" onclick="showSection('main')">← Înapoi</button>
+                </div>
+                <div id="savedRecommendationsContainer"></div>
+            </div>
+
+            <!-- Recommendation History Section -->
+            <div id="recommendationHistorySection" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Istoric Recomandări</h2>
+                    <button class="btn-secondary" onclick="showSection('main')">← Înapoi</button>
+                </div>
+                <div id="recommendationHistoryContainer"></div>
+            </div>
+
+            <!-- Profile Debug Section -->
+            <div id="profileDebugSection" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Profilul Meu de Genuri</h2>
+                    <button class="btn-secondary" onclick="showSection('main')">← Înapoi</button>
+                </div>
+                <div id="profileDebugContainer"></div>
+            </div>
+
+        </div> <!-- Închide container -->
+    </div> <!-- Închide dashboard -->
+
+    <!-- Recommendation Modal -->
+    <div id="recommendationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Generare Recomandări</h2>
+                <button class="close-btn" onclick="closeRecommendationModal()">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Tip Conținut</label>
+                <select id="recType" class="form-select">
+                    <option value="film">🎬 Filme</option>
+                    <option value="carte">📚 Cărți</option>
+                    <option value="muzica">🎵 Muzică</option>
+                </select>
+            </div>
+
+            <button class="btn-primary" onclick="generateRecommendations()">Generează Recomandări</button>
+
+            <div id="loadingRec" class="loading">
+                <div class="spinner"></div>
+                <p>Generare recomandări...</p>
+            </div>
+
+            <div id="recommendationsContainer" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <!-- Rating Modal -->
+    <div id="ratingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Acordă Rating</h2>
+                <button class="close-btn" onclick="closeRatingModal()">&times;</button>
+            </div>
+
+            <div id="ratingItemInfo" style="margin-bottom: 20px; padding: 15px; background: rgba(45, 90, 140, 0.2); border-radius: 8px;"></div>
+
+            <div class="form-group">
+                <label class="form-label">Rating (1-10)</label>
+                <input type="number" id="ratingValue" class="form-input" min="1" max="10" step="0.5" placeholder="Introduceți rating">
+            </div>
+
+            <button class="btn-primary" onclick="submitRating()">Salvează Rating</button>
+        </div>
+    </div>
+
+   <script>
+    const API_BASE = 'http://localhost:8080/api';
+    let currentUser = null;
+    let currentFilter = 'all';
+    let currentRatingItem = null;
+
+    // ✅ DOAR favoritele puse manual (ratingul NU are treabă cu favoritele)
+    let userFavorites = new Set();
+    let userRatings = new Map();
+
+    // -------------------- LOCAL STORAGE (manual favorites) --------------------
+    function favStorageKey(username) {
+        return `pickforyou_manual_favorites_${username}`;
+    }
+
+    function loadManualFavorites(username) {
+        try {
+            const raw = localStorage.getItem(favStorageKey(username));
+            if (!raw) return new Set();
+            const arr = JSON.parse(raw);
+            if (!Array.isArray(arr)) return new Set();
+            return new Set(arr.map(Number));
+        } catch {
+            return new Set();
+        }
+    }
+
+    function saveManualFavorites(username, favSet) {
+        try {
+            localStorage.setItem(favStorageKey(username), JSON.stringify([...favSet]));
+        } catch (e) {
+            console.warn('Nu pot salva favoritele local:', e);
+        }
+    }
+
+    function updateFavoritesStatLocal() {
+        document.getElementById('statFavorites').textContent = userFavorites.size;
+    }
+
+    // API Helper
+    async function apiCall(endpoint, options = {}) {
+        try {
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('API call failed:', error);
+            showAlert('Eroare de conexiune la server!', 'error');
+            return null;
+        }
+    }
+
+    // Auth Functions
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.auth-form').forEach(form => form.style.display = 'none');
+
+        event.target.classList.add('active');
+        if (tab === 'login') {
+            document.getElementById('loginForm').style.display = 'block';
+        } else {
+            document.getElementById('registerForm').style.display = 'block';
+        }
+    }
+
+    async function login() {
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+
+        if (!username || !password) {
+            showAlert('Toate câmpurile sunt obligatorii!', 'error');
+            return;
+        }
+
+        const response = await apiCall('/login', {
+            method: 'POST',
+            body: JSON.stringify({ username, password })
+        });
+
+        if (response && response.success) {
+            currentUser = username;
+
+            // ✅ încărcăm DOAR favoritele manuale (independent de rating)
+            userFavorites = loadManualFavorites(currentUser);
+
+            // păstrăm user-ul ca înainte (ai avut deja în onload)
+            localStorage.setItem('currentUser', currentUser);
+
+            showDashboard();
+            showAlert('Autentificare reușită!', 'success');
+        } else {
+            showAlert(response?.message || 'Eroare la autentificare!', 'error');
+        }
+    }
+
+    async function register() {
+        const username = document.getElementById('registerUsername').value;
+        const password = document.getElementById('registerPassword').value;
+        const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+
+        if (!username || !password || !passwordConfirm) {
+            showAlert('Toate câmpurile sunt obligatorii!', 'error');
+            return;
+        }
+
+        if (password !== passwordConfirm) {
+            showAlert('Parolele nu se potrivesc!', 'error');
+            return;
+        }
+
+        const response = await apiCall('/register', {
+            method: 'POST',
+            body: JSON.stringify({ username, password })
+        });
+
+        if (response && response.success) {
+            showAlert('Cont creat cu succes! Te poți conecta acum.', 'success');
+            setTimeout(() => switchTab('login'), 1500);
+        } else {
+            showAlert(response?.message || 'Eroare la înregistrare!', 'error');
+        }
+    }
+
+    function logout() {
+        currentUser = null;
+        userFavorites.clear();
+        userRatings.clear();
+        localStorage.removeItem('currentUser');
+
+        document.getElementById('authSection').style.display = 'flex';
+        document.getElementById('dashboardSection').classList.remove('active');
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+    }
+
+    // Dashboard
+    async function showDashboard() {
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('dashboardSection').classList.add('active');
+
+        document.getElementById('userName').textContent = currentUser;
+        document.getElementById('userAvatar').textContent = currentUser[0].toUpperCase();
+
+        await loadInitialUserData();
+        await loadDatabase();
+    }
+
+    // ✅ Încarcă datele inițiale fără să amestece ratingurile cu favoritele
+    async function loadInitialUserData() {
+        // Ratinguri
+        const ratResponse = await apiCall(`/ratings?username=${currentUser}`);
+        if (ratResponse && ratResponse.success) {
+            document.getElementById('statRatings').textContent = ratResponse.total;
+            userRatings = new Map(ratResponse.items.map(item => [Number(item.id), item.rating]));
+        } else {
+            document.getElementById('statRatings').textContent = '0';
+            userRatings = new Map();
+        }
+
+        // ✅ Favorite: DOAR manual (din localStorage) — ratingul nu influențează nimic
+        userFavorites = loadManualFavorites(currentUser);
+        updateFavoritesStatLocal();
+
+        // Recomandări
+        const recHistoryResponse = await apiCall(`/recommendations/history?username=${currentUser}`);
+        if (recHistoryResponse && recHistoryResponse.success) {
+            document.getElementById('statRecommendations').textContent = recHistoryResponse.total;
+        } else {
+            document.getElementById('statRecommendations').textContent = '0';
+        }
+
+        const savedRecResponse = await apiCall(`/recommendations/saved?username=${currentUser}`);
+        if (savedRecResponse && savedRecResponse.success) {
+            console.log("Recomandări salvate:", savedRecResponse.totalSesiuni);
+        }
+    }
+
+    async function updateRatingsStat() {
+        const ratResponse = await apiCall(`/ratings?username=${currentUser}`);
+        if (ratResponse && ratResponse.success) {
+            document.getElementById('statRatings').textContent = ratResponse.total;
+            userRatings = new Map(ratResponse.items.map(item => [Number(item.id), item.rating]));
+        }
+    }
+
+    async function updateRecommendationsStat() {
+        const recHistoryResponse = await apiCall(`/recommendations/history?username=${currentUser}`);
+        if (recHistoryResponse && recHistoryResponse.success) {
+            document.getElementById('statRecommendations').textContent = recHistoryResponse.total;
+        }
+    }
+
+    // Sections
+    function showSection(section) {
+        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+
+        if (section === 'main') {
+            document.getElementById('mainMenu').classList.add('active');
+        } else if (section === 'topDatabase') {
+            document.getElementById('topDatabaseSection').classList.add('active');
+            loadTopDatabase('all');
+        } else if (section === 'topUsers') {
+            document.getElementById('topUsersSection').classList.add('active');
+            loadTopUsers('all');
+        } else if (section === 'recentItems') {
+            document.getElementById('recentItemsSection').classList.add('active');
+            loadRecentItems();
+        } else if (section === 'database') {
+            document.getElementById('databaseSection').classList.add('active');
+            loadDatabase();
+        } else if (section === 'favorites') {
+            document.getElementById('favoritesSection').classList.add('active');
+            loadFavorites();
+        } else if (section === 'ratings') {
+            document.getElementById('ratingsSection').classList.add('active');
+            loadRatings();
+        } else if (section === 'recommendationHistory') {
+            document.getElementById('recommendationHistorySection').classList.add('active');
+            loadRecommendationHistory();
+        } else if (section === 'savedRecommendations') {
+            document.getElementById('savedRecommendationsSection').classList.add('active');
+            loadSavedRecommendations();
+        } else if (section === 'profileDebug') {
+            document.getElementById('profileDebugSection').classList.add('active');
+            loadProfileDebug();
+        }
+    }
+
+    // Database
+    async function loadDatabase() {
+        const tbody = document.getElementById('databaseTableBody');
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-gray);">Se încarcă...</td></tr>';
+
+        const endpoint = currentFilter === 'all' ? '/database' : `/database?tip=${currentFilter}`;
+        const response = await apiCall(endpoint);
+
+        if (!response) return;
+
+        tbody.innerHTML = '';
+
+        if (!response.items || response.items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-gray);">Nu s-au găsit item-uri.</td></tr>';
+            return;
+        }
+
+        response.items.forEach(item => {
+            const badgeClass = `badge-${item.tip}`;
+            const isFavorite = userFavorites.has(Number(item.id));
+            const userRating = userRatings.get(Number(item.id));
+
+            const row = `
+                <tr>
+                    <td>${item.id}</td>
+                    <td>${item.titlu}</td>
+                    <td><span class="badge ${badgeClass}">${item.tip}</span></td>
+                    <td>${item.an}</td>
+                    <td><span class="rating-star">★</span> ${item.rating}</td>
+                    <td>
+                        <button class="btn-secondary" onclick="toggleFavorite(${item.id})">
+                            ${isFavorite ? '❤️ Elimină' : '🤍 Adaugă'}
+                        </button>
+                        <button class="btn-secondary" onclick="openRatingModal(${item.id})">
+                            ${userRating ? '✏️ Modifică' : '🌟 Rating'}
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function filterDatabase(type) {
+        currentFilter = type;
+        loadDatabase();
+    }
+
+    async function searchDatabase() {
+        const searchTerm = document.getElementById('searchInput').value.trim();
+        const tbody = document.getElementById('databaseTableBody');
+
+        if (searchTerm.length < 2) {
+            loadDatabase();
+            return;
+        }
+
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-gray);">Se caută...</td></tr>';
+
+        const response = await apiCall(`/search?q=${encodeURIComponent(searchTerm)}`);
+
+        if (!response) return;
+
+        tbody.innerHTML = '';
+
+        if (!response.items || response.items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-gray);">Nu s-au găsit rezultate.</td></tr>';
+            return;
+        }
+
+        response.items.forEach(item => {
+            const badgeClass = `badge-${item.tip}`;
+            const isFavorite = userFavorites.has(Number(item.id));
+            const userRating = userRatings.get(Number(item.id));
+
+            const row = `
+                <tr>
+                    <td>${item.id}</td>
+                    <td>${item.titlu}</td>
+                    <td><span class="badge ${badgeClass}">${item.tip}</span></td>
+                    <td>${item.an}</td>
+                    <td><span class="rating-star">★</span> ${item.rating}</td>
+                    <td>
+                        <button class="btn-secondary" onclick="toggleFavorite(${item.id})">
+                            ${isFavorite ? '❤️ Elimină' : '🤍 Adaugă'}
+                        </button>
+                        <button class="btn-secondary" onclick="openRatingModal(${item.id})">
+                            ${userRating ? '✏️ Modifică' : '🌟 Rating'}
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    // FAVORITE - păstrează exact designul (texte/emoji) ca în codul tău
+    async function toggleFavorite(itemId, buttonElement = null) {
+        const itemIdNum = Number(itemId);
+        const isCurrentlyFavorite = userFavorites.has(itemIdNum);
+
+        const endpoint = isCurrentlyFavorite ? '/favorites/remove' : '/favorites/add';
+
+        const response = await apiCall(endpoint, {
+            method: 'POST',
+            body: JSON.stringify({
+                username: currentUser,
+                itemId: itemIdNum
+            })
+        });
+
+        if (response && response.success) {
+            if (isCurrentlyFavorite) userFavorites.delete(itemIdNum);
+            else userFavorites.add(itemIdNum);
+
+            // ✅ persistă manual favorites (ratingul nu modifică asta)
+            saveManualFavorites(currentUser, userFavorites);
+
+            // dacă e buton inimă mic (doar ❤️/🤍)
+            if (buttonElement) {
+                buttonElement.textContent = userFavorites.has(itemIdNum) ? '❤️' : '🤍';
+            }
+
+            // stats favorite = manual
+            updateFavoritesStatLocal();
+
+            // refresh UI
+            loadDatabase();
+            if (document.getElementById('favoritesSection').classList.contains('active')) {
+                loadFavorites();
+            }
+
+            showAlert(response.message, 'success');
+        } else {
+            showAlert(response?.message || 'Eroare!', 'error');
+        }
+    }
+
+    // Favorites (design identic cu al tău: aceleași carduri + butoane)
+    async function loadFavorites() {
+        const container = document.getElementById('favoritesContainer');
+        container.innerHTML = '<p style="text-align: center; color: var(--text-gray);">Se încarcă...</p>';
+
+        if (userFavorites.size === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-gray); padding: 40px;">Nu ai favorite.</p>';
+            return;
+        }
+
+        // Ca să avem titlu/an/rating, luăm baza de date și filtrăm după id
+        const db = await apiCall('/database');
+        if (!db || !db.items) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-gray);">Eroare!</p>';
+            return;
+        }
+
+        const favItems = db.items.filter(it => userFavorites.has(Number(it.id)));
+
+        if (!favItems || favItems.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-gray); padding: 40px;">Nu ai favorite.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        favItems.forEach(item => {
+            const userRating = userRatings.get(Number(item.id));
+            const card = `
+                <div class="recommendation-card">
+                    <div class="rec-header">
+                        <div class="rec-title">${item.titlu}</div>
+                        <span class="badge badge-${item.tip}">${item.tip}</span>
+                    </div>
+                    <div class="rec-details">
+                        <span>An: ${item.an}</span>
+                        <span><span class="rating-star">★</span> ${item.rating}</span>
+                        ${userRating ? `<span class="rating-star">★</span> Rating: ${userRating}` : ''}
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button class="btn-secondary" onclick="toggleFavorite(${item.id})">❤️ Elimină</button>
+                        <button class="btn-secondary" onclick="openRatingModal(${item.id})">🌟 Rating</button>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += card;
+        });
+    }
+
+    // Ratings
+    async function loadRatings() {
+        const tbody = document.getElementById('ratingsTableBody');
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-gray);">Se încarcă...</td></tr>';
+
+        const response = await apiCall(`/ratings?username=${currentUser}`);
+
+        if (!response || !response.success) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-gray);">Eroare!</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+
+        if (!response.items || response.items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-gray);">Nu ai ratinguri.</td></tr>';
+            return;
+        }
+
+        response.items.forEach(item => {
+            const row = `
+                <tr>
+                    <td>${item.titlu}</td>
+                    <td><span class="badge badge-${item.tip}">${item.tip}</span></td>
+                    <td><span class="rating-star">★</span> ${item.rating}</td>
+                    <td>
+                        <button class="btn-secondary" onclick="openRatingModal(${item.id})">✏️ Modifică</button>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    // Recommendation History
+    async function loadRecommendationHistory() {
+        const container = document.getElementById('recommendationHistoryContainer');
+        container.innerHTML = '<p style="text-align: center; color: var(--text-gray);">Se încarcă...</p>';
+
+        const response = await apiCall(`/recommendations/history?username=${currentUser}`);
+
+        if (!response || !response.success) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-gray);">Eroare la încărcare!</p>';
+            return;
+        }
+
+        if (!response.items || response.items.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-gray); padding: 40px;">Nu ai recomandări în istoric.</p>';
+            return;
+        }
+
+        let html = `
+            <div style="margin-bottom: 20px; padding: 15px; background: rgba(45, 90, 140, 0.2); border-radius: 8px;">
+                <p><strong>Total recomandări:</strong> ${response.total}</p>
+                <p><strong>Cu rating:</strong> ${response.withRating || 0}</p>
+                <p><strong>Fără rating:</strong> ${response.withoutRating || 0}</p>
+            </div>
+        `;
+
+        response.items.forEach(item => {
+            const badgeClass = `badge-${item.tip}`;
+            const hasRating = item.hasRating;
+            const userRating = item.userRating;
+            const ratingDate = item.ratingData;
+            const matchRaw = item.similaritate ?? item.match;
+            const matchPercent = matchRaw != null ? Math.round(matchRaw * (matchRaw <= 1 ? 100 : 1)) : null;
+
+            html += `
+                <div class="recommendation-card">
+                    <div class="rec-header">
+                        <div class="rec-title">${item.titlu}</div>
+                        ${matchPercent !== null ? `<span class="match-score">${matchPercent}% match</span>` : ''}
+                    </div>
+                    <div class="rec-details">
+                        <span>An: ${item.an}</span>
+                        <span><span class="rating-star">★</span> ${item.rating}</span>
+                        <span class="badge ${badgeClass}">${item.tip}</span>
+                        ${
+                            hasRating ? `
+                            <span style="color: var(--success);">
+                                <span class="rating-star">★</span> Rating tău: ${userRating}
+                            </span>
+                            <span style="color: var(--text-gray); font-size: 11px;">
+                                (${ratingDate})
+                            </span>` :
+                            `<span style="color: var(--warning);">Încă neevaluat</span>`
+                        }
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button class="btn-secondary" onclick="openRatingModal(${item.id})">
+                            ${hasRating ? '✏️ Modifică Rating' : '🌟 Acordă Rating'}
+                        </button>
+                        <button class="btn-secondary" onclick="toggleFavorite(${item.id})">
+                            ${userFavorites.has(Number(item.id)) ? '❤️ Elimină' : '🤍 Adaugă'} Favorite
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // Recommendations
+    function openRecommendationModal() {
+        document.getElementById('recommendationModal').classList.add('active');
+        document.getElementById('recommendationsContainer').innerHTML = '';
+    }
+
+    function closeRecommendationModal() {
+        document.getElementById('recommendationModal').classList.remove('active');
+
+        if (document.getElementById('savedRecommendationsSection').classList.contains('active')) {
+            loadSavedRecommendations();
+        }
+    }
+
+    async function generateRecommendations() {
+        const type = document.getElementById('recType').value;
+        document.getElementById('loadingRec').classList.add('active');
+        document.getElementById('recommendationsContainer').innerHTML = '';
+
+        const response = await apiCall(`/recommendations?username=${currentUser}&tip=${type}`);
+
+        document.getElementById('loadingRec').classList.remove('active');
+
+        if (!response || !response.success) {
+            document.getElementById('recommendationsContainer').innerHTML =
+                `<p style="color: var(--error);">${response?.message || 'Eroare la generare!'}</p>`;
+            return;
+        }
+
+        // Actualizează statisticile pentru recomandări
+        await updateRecommendationsStat();
+
+        if (document.getElementById('savedRecommendationsSection').classList.contains('active')) {
+            await loadSavedRecommendations();
+        }
+
+        showAlert('Recomandări generate și salvate automat!', 'success');
+
+        let html = `
+            <h3 style="color: var(--light-blue); margin-bottom: 15px;">
+                🎯 Recomandări (${response.items.length}) - Metoda: ${response.method || 'hibrid'}
+            </h3>
+            <div style="margin-bottom: 20px; padding: 15px; background: rgba(50, 184, 140, 0.2); border-radius: 8px; border: 1px solid var(--success);">
+                <p style="color: var(--success); margin: 0;">
+                    ✅ <strong>Recomandările tale s-au salvat automat!</strong>
+                </p>
+                <p style="color: var(--text-gray); font-size: 12px; margin: 5px 0 0 0;">
+                    Vezi-le în secțiunea "Recomandări Salvate"
+                </p>
+            </div>
+        `;
+
+        response.items.forEach((item) => {
+            const matchRaw = item.matchPercent;
+            let matchPercent = 0;
+            if (matchRaw !== null && matchRaw !== undefined) {
+                matchPercent = Math.round(matchRaw);
+            }
+
+            const hasRating = item.hasRating;
+            const userRating = item.userRating;
+            const ratingDate = item.ratingData;
+
+            html += `
+                <div class="recommendation-card">
+                    <div class="rec-header">
+                        <div class="rec-title">
+                            ${item.titlu}
+                        </div>
+                        <span class="rec-match-score">${matchPercent}% match</span>
+                    </div>
+                    <div class="rec-details">
+                        <span>An: ${item.an}</span>
+                        <span><span class="rating-star">★</span> ${item.rating}</span>
+                        <span class="badge badge-${item.tip}">${item.tip}</span>
+                    </div>
+                    ${hasRating ? `
+                        <div class="rec-details" style="margin-top: 10px; background: rgba(50, 184, 140, 0.1); padding: 8px; border-radius: 6px;">
+                            <span style="color: var(--success);">
+                                <span class="rating-star">★</span> Ai evaluat: ${userRating}
+                            </span>
+                            <span style="color: var(--text-gray); font-size: 11px;">
+                                (${ratingDate})
+                            </span>
+                        </div>
+                    ` : ''}
+                    <div style="margin-top: 15px;">
+                        <button class="btn-secondary" onclick="openRatingModal(${item.id})">
+                            ${hasRating ? '✏️ Modifică Rating' : '🌟 Acordă Rating'}
+                        </button>
+                        <button class="btn-secondary favorite-btn" onclick="toggleFavorite(${item.id}, this)">
+                            ${userFavorites.has(Number(item.id)) ? '❤️' : '🤍'}
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        document.getElementById('recommendationsContainer').innerHTML = html;
+    }
+
+    // Recomandări salvate
+    async function loadSavedRecommendations() {
+        const container = document.getElementById('savedRecommendationsContainer');
+        container.innerHTML = '<p style="text-align: center; color: var(--text-gray);">Se încarcă...</p>';
+
+        const response = await apiCall(`/recommendations/saved?username=${currentUser}`);
+
+        if (!response || !response.success) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-gray); padding: 40px;">' +
+                (response?.message || 'Eroare la încărcare!') + '</p>';
+            return;
+        }
+
+        if (!response.sesiuni || response.sesiuni.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-gray); padding: 40px;">Nu ai recomandări salvate.</p>';
+            return;
+        }
+
+        let html = `<h3 style="color: var(--light-blue); margin-bottom: 20px;">Sesiuni de recomandări salvate (${response.totalSesiuni})</h3>`;
+
+        response.sesiuni.forEach(sesiune => {
+            html += `
+                <div style="margin-bottom: 30px; padding: 20px; background: rgba(45, 90, 140, 0.2); border-radius: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4 style="color: var(--light-blue);">Sesiune: ${sesiune.dataGenerare}</h4>
+                        <span class="badge badge-default">${sesiune.numarItemi} itemi</span>
+                    </div>
+            `;
+
+            sesiune.items.forEach(item => {
+                const badgeClass = `badge-${item.tip}`;
+                const isEvaluated = item.evaluata;
+
+                html += `
+                    <div class="recommendation-card">
+                        <div class="rec-header">
+                            <div class="rec-title">${item.titlu}</div>
+                        </div>
+                        <div class="rec-details">
+                            <span>An: ${item.an}</span>
+                            <span><span class="rating-star">★</span> ${item.rating}</span>
+                            <span class="badge ${badgeClass}">${item.tip}</span>
+                            <span style="color: ${isEvaluated ? 'var(--success)' : 'var(--warning)'};">
+                                ${isEvaluated ? '✓ Evaluat' : '⏳ Neevaluat'}
+                            </span>
+                        </div>
+                        ${isEvaluated ? `
+                            <div class="rec-details" style="margin-top: 10px; background: rgba(50, 184, 140, 0.1); padding: 8px; border-radius: 6px;">
+                                <span style="color: var(--success);">
+                                    <span class="rating-star">★</span> Rating: ${item.ratingUtilizator}
+                                </span>
+                                <span style="color: var(--text-gray); font-size: 11px;">
+                                    (${item.dataEvaluare})
+                                </span>
+                            </div>
+                        ` : ''}
+                        <div style="margin-top: 15px;">
+                            <button class="btn-secondary" onclick="openRatingModal(${item.id})">
+                                ${isEvaluated ? '✏️ Modifică Rating' : '🌟 Acordă Rating'}
+                            </button>
+                            <button class="btn-secondary favorite-btn" onclick="toggleFavorite(${item.id}, this)">
+                                ${userFavorites.has(Number(item.id)) ? '❤️' : '🤍'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // Profil Genuri
+    async function loadProfileDebug() {
+        const container = document.getElementById('profileDebugContainer');
+        container.innerHTML = '<p style="text-align: center; color: var(--text-gray);">Se încarcă profilul tău...</p>';
+
+        const response = await apiCall(`/profile/debug?username=${currentUser}`);
+
+        if (!response || !response.success) {
+            container.innerHTML = `<p style="text-align: center; color: var(--error); padding: 40px;">
+                ${response?.message || 'Eroare la încărcarea profilului de genuri!'}
+            </p>`;
+            return;
+        }
+
+        let html = `
+            <div style="margin-bottom: 20px; padding: 15px; background: rgba(45, 90, 140, 0.2); border-radius: 8px;">
+                <h3 style="color: var(--light-blue); margin-bottom: 10px;">Rezumat preferințe</h3>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <h4 style="color: var(--success); margin-bottom: 5px;">Genuri preferate</h4>
+                        <ul style="list-style: none; padding-left: 0; font-size: 13px;">
+        `;
+
+        (response.topPozitive || []).forEach(g => {
+            html += `<li>✅ <strong>${g.gen}</strong> (scor: ${g.scor.toFixed(2)})</li>`;
+        });
+
+        if (!response.topPozitive || response.topPozitive.length === 0) {
+            html += `<li style="color: var(--text-gray);">Nu avem încă suficiente date.</li>`;
+        }
+
+        html += `
+                        </ul>
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <h4 style="color: var(--error); margin-bottom: 5px;">Genuri evitate</h4>
+                        <ul style="list-style: none; padding-left: 0; font-size: 13px;">
+        `;
+
+        (response.topNegative || []).forEach(g => {
+            html += `<li>⚠️ <strong>${g.gen}</strong> (scor: ${g.scor.toFixed(2)})</li>`;
+        });
+
+        if (!response.topNegative || response.topNegative.length === 0) {
+            html += `<li style="color: var(--text-gray);">Nu avem încă genuri clar „evitate”.</li>`;
+        }
+
+        html += `
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    // Rating Modal
+    async function openRatingModal(itemId) {
+        currentRatingItem = itemId;
+
+        const databaseResponse = await apiCall('/database');
+        if (!databaseResponse || !databaseResponse.items) return;
+
+        const item = databaseResponse.items.find(i => i.id === itemId);
+        if (!item) return;
+
+        document.getElementById('ratingItemInfo').innerHTML = `
+            <h3 style="color: var(--light-blue); margin-bottom: 10px;">${item.titlu}</h3>
+            <p style="color: var(--text-gray);">Tip: <span class="badge badge-${item.tip}">${item.tip}</span></p>
+            <p style="color: var(--text-gray);">An: ${item.an}</p>
+            <p style="color: var(--text-gray);">Rating DB: <span class="rating-star">★</span> ${item.rating}</p>
+        `;
+
+        const userRating = userRatings.get(Number(itemId));
+        document.getElementById('ratingValue').value = userRating || '';
+
+        document.getElementById('ratingModal').classList.add('active');
+    }
+
+    function closeRatingModal() {
+        document.getElementById('ratingModal').classList.remove('active');
+    }
+
+    async function submitRating() {
+        const rating = parseFloat(document.getElementById('ratingValue').value);
+
+        if (!rating || rating < 1 || rating > 10) {
+            showAlert('Rating invalid! Trebuie să fie între 1 și 10.', 'error');
+            return;
+        }
+
+        const isRecommendation = document.getElementById('recommendationModal').classList.contains('active');
+
+        let response;
+        if (isRecommendation) {
+            response = await apiCall('/rating/recommendation', {
+                method: 'POST',
+                body: JSON.stringify({
+                    username: currentUser,
+                    itemId: currentRatingItem,
+                    rating: rating,
+                    tipRecomandare: 'hibrid'
+                })
+            });
+        } else {
+            response = await apiCall('/rating', {
+                method: 'POST',
+                body: JSON.stringify({
+                    username: currentUser,
+                    itemId: currentRatingItem,
+                    rating: rating
+                })
+            });
+        }
+
+        if (response && response.success) {
+            // ✅ Actualizează doar ratingurile + recomandările, NU favoritele
+            await updateRatingsStat();
+            await updateRecommendationsStat();
+
+            closeRatingModal();
+            showAlert(response.message, 'success');
+
+            // Reîncarcă secțiunile relevante
+            if (document.getElementById('recommendationHistorySection').classList.contains('active')) {
+                loadRecommendationHistory();
+            }
+            if (document.getElementById('recommendationModal').classList.contains('active')) {
+                generateRecommendations();
+            }
+
+            loadDatabase();
+            loadRatings();
+
+            if (document.getElementById('favoritesSection').classList.contains('active')) {
+                loadFavorites();
+            }
+
+            if (document.getElementById('savedRecommendationsSection').classList.contains('active')) {
+                loadSavedRecommendations();
+            }
+
+            // asigură stats favorite corecte (manual)
+            updateFavoritesStatLocal();
+        } else {
+            showAlert(response?.message || 'Eroare!', 'error');
+        }
+    }
+
+    // Top Baza de Date
+    async function loadTopDatabase(type) {
+        const container = document.getElementById('topDatabaseContainer');
+        container.innerHTML = '<p style="text-align: center; color: var(--text-gray);">Se încarcă...</p>';
+
+        const endpoint = type === 'all' ? '/top-database' : `/top-database?tip=${type}`;
+        const response = await apiCall(endpoint);
+
+        if (!response) return;
+
+        container.innerHTML = '';
+
+        if (!response.success || !response.items || response.items.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-gray); padding: 40px;">Nu s-au găsit item-uri.</p>';
+            return;
+        }
+
+        response.items.forEach((item, index) => {
+            const badgeClass = `badge-${item.tip}`;
+            const isFavorite = userFavorites.has(Number(item.id));
+            const userRating = userRatings.get(Number(item.id));
+
+            const card = `
+                <div class="top-item">
+                    <div class="top-position">${index + 1}</div>
+                    <div class="top-info">
+                        <div class="top-title">${item.titlu}</div>
+                        <div class="top-details">
+                            <span class="badge ${badgeClass}">${item.tip}</span>
+                            <span>An: ${item.an}</span>
+                            <span><span class="rating-star">★</span> ${item.rating}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn-secondary" onclick="toggleFavorite(${item.id})">
+                            ${isFavorite ? '❤️ Elimină' : '🤍 Adaugă'}
+                        </button>
+                        <button class="btn-secondary" onclick="openRatingModal(${item.id})">
+                            ${userRating ? '✏️ Modifică' : '🌟 Rating'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += card;
+        });
+    }
+
+    // Top Utilizatori
+    async function loadTopUsers(type) {
+        const container = document.getElementById('topUsersContainer');
+        container.innerHTML = '<p style="text-align: center; color: var(--text-gray);">Se încarcă...</p>';
+
+        const endpoint = type === 'all' ? '/top-users' : `/top-users?tip=${type}`;
+        const response = await apiCall(endpoint);
+
+        if (!response) return;
+
+        container.innerHTML = '';
+
+        if (!response.success || !response.items || response.items.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-gray); padding: 40px;">Nu s-au găsit item-uri.</p>';
+            return;
+        }
+
+        response.items.forEach((item, index) => {
+            const badgeClass = `badge-${item.tip}`;
+            const isFavorite = userFavorites.has(Number(item.id));
+            const userRating = userRatings.get(Number(item.id));
+            const ratingValue = item.ratingMediu || item.rating;
+            const ratingCount = item.numarRatinguri ? `(${item.numarRatinguri} ratinguri)` : '';
+
+            const card = `
+                <div class="top-item">
+                    <div class="top-position">${index + 1}</div>
+                    <div class="top-info">
+                        <div class="top-title">${item.titlu}</div>
+                        <div class="top-details">
+                            <span class="badge ${badgeClass}">${item.tip}</span>
+                            <span>An: ${item.an}</span>
+                            <span><span class="rating-star">★</span> ${ratingValue}</span>
+                            <span>${ratingCount}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn-secondary" onclick="toggleFavorite(${item.id})">
+                            ${isFavorite ? '❤️ Elimină' : '🤍 Adaugă'}
+                        </button>
+                        <button class="btn-secondary" onclick="openRatingModal(${item.id})">
+                            ${userRating ? '✏️ Modifică' : '🌟 Rating'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += card;
+        });
+    }
+
+    // Itemi Recente
+    async function loadRecentItems() {
+        const container = document.getElementById('recentItemsContainer');
+        container.innerHTML = '<p style="text-align: center; color: var(--text-gray);">Se încarcă...</p>';
+
+        const response = await apiCall('/recent');
+
+        if (!response) return;
+
+        container.innerHTML = '';
+
+        if (!response.success || !response.items || response.items.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-gray); padding: 40px;">Nu s-au găsit item-uri recente.</p>';
+            return;
+        }
+
+        container.innerHTML = `<h3 style="color: var(--light-blue); margin-bottom: 20px;">Itemi din anul ${response.an}</h3>`;
+
+        response.items.forEach((item, index) => {
+            const badgeClass = `badge-${item.tip}`;
+            const isFavorite = userFavorites.has(Number(item.id));
+            const userRating = userRatings.get(Number(item.id));
+
+            const card = `
+                <div class="top-item">
+                    <div class="top-position">${index + 1}</div>
+                    <div class="top-info">
+                        <div class="top-title">${item.titlu}</div>
+                        <div class="top-details">
+                            <span class="badge ${badgeClass}">${item.tip}</span>
+                            <span>An: ${item.an}</span>
+                            <span><span class="rating-star">★</span> ${item.rating}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn-secondary" onclick="toggleFavorite(${item.id})">
+                            ${isFavorite ? '❤️ Elimină' : '🤍 Adaugă'}
+                        </button>
+                        <button class="btn-secondary" onclick="openRatingModal(${item.id})">
+                            ${userRating ? '✏️ Modifică' : '🌟 Rating'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += card;
+        });
+    }
+
+    // Utils
+    function showAlert(message, type) {
+        const alertBox = document.getElementById('alertBox');
+        alertBox.className = `alert alert-${type} active`;
+        alertBox.textContent = message;
+
+        setTimeout(() => {
+            alertBox.classList.remove('active');
+        }, 4000);
+    }
+
+    window.onload = function() {
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+            currentUser = savedUser;
+
+            // ✅ manual favorites (ratingul nu le schimbă)
+            userFavorites = loadManualFavorites(currentUser);
+
+            showDashboard();
+        }
+    };
+</script>
+
+</body>
+</html>
